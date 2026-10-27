@@ -581,13 +581,29 @@
       return parseDateMaybe(topic.modified_date);
     }
 
+    function tagName(value){
+      if(typeof value==="string" || typeof value==="number"){
+        const str=String(value).trim();
+        return str && str!=="[object Object]" ? str : "";
+      }
+      if(value && typeof value==="object" && !Array.isArray(value)){
+        for(const prop of ["name","label","title","value","text"]){
+          if(value[prop]!==undefined && value[prop]!==value){
+            const result=tagName(value[prop]);
+            if(result)return result;
+          }
+        }
+      }
+      return "";
+    }
     function extractTags(topic){
-      const c=[];
-      if(Array.isArray(topic.labels)) c.push(...topic.labels);
-      if(Array.isArray(topic.tags))   c.push(...topic.tags);
-      const s=safeStr(topic.label||topic.tag||topic.discipline);
-      if(s) c.push(s);
-      return [...new Set(c.map(safeStr).filter(Boolean))];
+      const values=[];
+      if(Array.isArray(topic.labels))values.push(...topic.labels);
+      if(Array.isArray(topic.tags))values.push(...topic.tags);
+      for(const field of ["label","tag","discipline"]){
+        if(topic[field]!==undefined && topic[field]!==null)values.push(topic[field]);
+      }
+      return [...new Set(values.map(tagName).filter(Boolean))];
     }
     function getStatus(t){ return safeStr(t.topic_status||t.status)||UNKNOWN_LABEL; }
     function getTitle(t) { return safeStr(t.title)||safeStr(t.topic_title)||"(uten tittel)"; }
@@ -1258,7 +1274,7 @@
         due_date:x.dueDate||x.due_date||x.dueOn||null,
         assigned_to:assignees.filter(Boolean).join(", "),
         assignees:assignees.filter(Boolean),
-        labels:Array.isArray(tags)?tags.map(v=>typeof v==="string"?v:(v.name||v.label||"")).filter(Boolean):[],
+        labels:Array.isArray(tags)?tags.map(tagName).filter(Boolean):[],
       };
     }
     function unwrapTodos(json){
