@@ -274,7 +274,7 @@
            onerror="this.style.display='none'; this.parentElement.textContent='N';">
     </div>
     <div>
-      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.3</span></div>
+      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.4</span></div>
       <div class="app-sub">Norconsult Norge</div>
     </div>
     <div class="header-right">
@@ -466,7 +466,7 @@
           <div class="card-header">
             <div>
               <div class="card-title">Gjennomsnittlig cycle time per Assignee</div>
-              <div class="card-hint">Snitt dager fra opprettet → lukket</div>
+              <div class="card-hint">Snitt dager fra opprettet → lukket (siste endring brukes hvis sluttdato mangler)</div>
             </div>
           </div>
           <div class="chart-wrap"><canvas id="assigneeCycleTimeChart"></canvas></div>
@@ -577,8 +577,8 @@
 
     function getClosedDate(topic){
       const st=safeStr(topic.topic_status||topic.status);
-      if(!CLOSED_STATUSES.has(st)) return null;
-      return parseDateMaybe(topic.modified_date);
+      if(!CLOSED_STATUSES.has(st) && !CLOSED_STATUSES.has(st.toLowerCase())) return null;
+      return parseDateMaybe(topic.closed_date || topic.closedDate || topic.resolvedAt || topic.resolvedOn || topic.completedAt || topic.completedOn || topic.modified_date);
     }
 
     function tagName(value){
@@ -1268,6 +1268,7 @@
         title:x.title||x.name||x.subject||"(uten tittel)",
         creation_date:x.createdOn||x.createdAt||x.creation_date||x.created||x.createdDate||x.creationDate||null,
         modified_date:x.modifiedOn||x.updatedAt||x.modified_date||x.modified||x.lastModifiedOn||null,
+        closed_date:x.closedOn||x.closedAt||x.closedDate||x.closed_date||x.resolvedOn||x.resolvedAt||x.completedOn||x.completedAt||null,
         topic_status:x.status?.name||x.status?.value||x.status||"Ikke satt",
         topic_type:x.type?.name||x.type?.value||x.type||"Ikke satt",
         priority:x.priority?.name||x.priority?.value||x.priority||"Ikke satt",
