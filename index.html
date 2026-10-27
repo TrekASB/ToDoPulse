@@ -274,7 +274,7 @@
            onerror="this.style.display='none'; this.parentElement.textContent='N';">
     </div>
     <div>
-      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.6</span></div>
+      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.7</span></div>
       <div class="app-sub">Norconsult Norge</div>
     </div>
     <div class="header-right">
@@ -598,13 +598,10 @@
       return "";
     }
     function extractTags(topic){
-      const values=[];
-      if(Array.isArray(topic.labels))values.push(...topic.labels);
-      if(Array.isArray(topic.tags))values.push(...topic.tags);
-      for(const field of ["label","tag","discipline"]){
-        if(topic[field]!==undefined && topic[field]!==null)values.push(topic[field]);
-      }
-      return [...new Set(values.map(tagName).filter(v=>v && !/^\[object\s+object\]$/i.test(v)))];
+      // Fagfordeling skal kun baseres på Trimble ToDo «Etiketter» (labels).
+      // Andre metadatafelter som tags/tag/discipline er ikke etiketter.
+      const labels=Array.isArray(topic.labels)?topic.labels:[];
+      return [...new Set(labels.map(tagName).filter(Boolean))];
     }
     function getStatus(t){ return safeStr(t.topic_status||t.status)||UNKNOWN_LABEL; }
     function getTitle(t) { return safeStr(t.title)||safeStr(t.topic_title)||"(uten tittel)"; }
@@ -1282,7 +1279,7 @@
     function normalizeTodo(x){
       const a=x.assignees || x.assignedTo || x.assigned_to || x.assignee || [];
       const assignees=Array.isArray(a)?a.map(v=>typeof v==="string"?v:(v.name||v.email||v.userName||v.id||"")):[typeof a==="string"?a:(a?.name||a?.email||"")];
-      const tags=(x.tags||x.labels||[]);
+      const labels=Array.isArray(x.labels)?x.labels:[];
       return {
         ...x,
         guid:String(x.id||x.guid||x.todoId||x.todo_id||""),
@@ -1296,7 +1293,7 @@
         due_date:x.dueDate||x.due_date||x.dueOn||null,
         assigned_to:assignees.filter(Boolean).join(", "),
         assignees:assignees.filter(Boolean),
-        labels:Array.isArray(tags)?tags.map(tagName).filter(Boolean):[],
+        labels:labels.map(tagName).filter(Boolean),
       };
     }
     function unwrapTodos(json){
