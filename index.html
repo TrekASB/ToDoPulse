@@ -78,6 +78,27 @@
     .btn-danger:hover { background: #fff3ef; }
     .btn:disabled { opacity: .45; cursor: default; }
 
+    /* Responsive header: prevent developer text overlapping filter toolbar */
+    header { height:auto; min-height:90px; padding:12px 16px; display:grid; grid-template-columns:140px minmax(0,1fr) auto; gap:14px; align-items:center; }
+    header .logo-box { width:140px; max-width:100%; }
+    header .header-title { min-width:0; overflow-wrap:anywhere; }
+    header .app-devline { max-width:100%; }
+    header .header-right { min-width:0; margin-left:0; justify-content:flex-end; flex-wrap:wrap; }
+    header #status { max-width:200px; }
+    @media(max-width:850px) {
+      header { grid-template-columns:115px minmax(0,1fr); gap:10px 14px; }
+      header .logo-box { width:115px; }
+      header .header-right { grid-column:1 / -1; justify-content:space-between; width:100%; padding-top:7px; border-top:1px solid var(--border); }
+      header #status { max-width:none; white-space:normal; flex:1; }
+      header .app-name { font-size:17px; }
+      header .app-devline { font-size:10px; }
+    }
+    @media(max-width:380px) {
+      header { grid-template-columns:95px minmax(0,1fr); padding:10px; }
+      header .logo-box { width:95px; }
+      header .header-right .btn { padding:7px 9px; }
+    }
+
     /* ── TOOLBAR (filters) ──────────────────────────── */
     .toolbar {
       background: var(--surface);
@@ -266,8 +287,8 @@
     <div class="logo-box">
       <img src="https://trekasb.github.io/BCFManagerNO/assets/norconsult-logo.png" alt="Norconsult">
     </div>
-    <div>
-      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.9</span></div>
+    <div class="header-title">
+      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v3.0</span></div>
       <div class="app-sub">Norconsult Norge</div>
       <div class="app-devline">Developed by Norconsult, (AI-assisted development). Kontaktperson: Edin.Dzakmic@norconsult.com.</div>
     </div>
