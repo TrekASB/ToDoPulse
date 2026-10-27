@@ -1268,7 +1268,7 @@
       }
       throw new Error("Ukjent ToDo-svar fra Core API (ingen saksliste).");
     }
-    async function fetchTopics(pid){
+    async function fetchToDos(pid){
       if(!accessToken)throw new Error("Mangler accessToken.");
       const errors=[];
       for(const host of CORE_API_HOSTS){
