@@ -274,7 +274,7 @@
            onerror="this.style.display='none'; this.parentElement.textContent='N';">
     </div>
     <div>
-      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.2</span></div>
+      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.3</span></div>
       <div class="app-sub">Norconsult Norge</div>
     </div>
     <div class="header-right">
@@ -540,7 +540,7 @@
 
     // ── Helpers ──────────────────────────────────────
     function escHtml(s){ return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
-    function safeStr(v){ return (v===null||v===undefined)?"":String(v).trim(); }
+    function safeStr(v){ if(v===null||v===undefined)return ""; if(typeof v==="object")return ""; const x=String(v).trim(); return /^\[object\s+object\]$/i.test(x)?"":x; }
     function parseDateMaybe(v){ const s=safeStr(v); if(!s) return null; const d=new Date(s); return Number.isNaN(d.getTime())?null:d; }
     function fmtDate(d){ if(!d) return ""; return [String(d.getDate()).padStart(2,"0"), String(d.getMonth()+1).padStart(2,"0"), d.getFullYear()].join("."); }
     function pad2(n){ return String(n).padStart(2,"0"); }
@@ -584,7 +584,7 @@
     function tagName(value){
       if(typeof value==="string" || typeof value==="number"){
         const str=String(value).trim();
-        return str && str!=="[object Object]" ? str : "";
+        return str && !/^\[object\s+object\]$/i.test(str) ? str : "";
       }
       if(value && typeof value==="object" && !Array.isArray(value)){
         for(const prop of ["name","label","title","value","text"]){
@@ -603,7 +603,7 @@
       for(const field of ["label","tag","discipline"]){
         if(topic[field]!==undefined && topic[field]!==null)values.push(topic[field]);
       }
-      return [...new Set(values.map(tagName).filter(Boolean))];
+      return [...new Set(values.map(tagName).filter(v=>v && !/^\[object\s+object\]$/i.test(v)))];
     }
     function getStatus(t){ return safeStr(t.topic_status||t.status)||UNKNOWN_LABEL; }
     function getTitle(t) { return safeStr(t.title)||safeStr(t.topic_title)||"(uten tittel)"; }
