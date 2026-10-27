@@ -274,7 +274,7 @@
            onerror="this.style.display='none'; this.parentElement.textContent='N';">
     </div>
     <div>
-      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.4</span></div>
+      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.5</span></div>
       <div class="app-sub">Norconsult Norge</div>
     </div>
     <div class="header-right">
@@ -1191,8 +1191,12 @@
       buildPie("tagDisciplineChart", aggTagCounts(weekToDos));
       renderTagTable(document.getElementById("tagStatusTableWrap"), aggTagStatusMatrix(weekToDos));
 
-      const byStatus=aggByCategory(filteredToDos, t=>t.topic_status||t.status);
-      buildMultiLine("statusLineChart", byStatus.labels, byStatus.keys, byStatus.seriesMap);
+      const byStatus=aggByCategory(filteredToDos, t=>getStatus(t).toUpperCase().replace(/[\\s-]+/g,"_"));
+      // Alle standardstatuser inkluderes også ved 0 saker.
+      const standardStatuses=["NEW","IN_PROGRESS","WAITING","RESOLVED","CLOSED"];
+      const allStatuses=[...standardStatuses,...byStatus.keys.filter(k=>!standardStatuses.includes(k))];
+      const statusSeries=Object.fromEntries(allStatuses.map(st=>[st,byStatus.seriesMap[st]||byStatus.labels.map(()=>0)]));
+      buildMultiLine("statusLineChart", byStatus.labels, allStatuses, statusSeries);
 
       const byType=aggByCategory(filteredToDos, t=>t.topic_type||t.type);
       buildMultiLine("typeLineChart", byType.labels, byType.keys, byType.seriesMap);
