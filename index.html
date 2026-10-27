@@ -48,17 +48,11 @@
       top: 0;
       z-index: 100;
     }
-    .logo-box {
-      width: 36px; height: 36px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden; flex-shrink: 0;
-    }
-    .logo-box img { width: 30px; height: 30px; object-fit: contain; }
-    .app-name { font-size: 16px; font-weight: 800; color: var(--blue); letter-spacing: -.3px; }
-    .app-sub  { font-size: 11px; color: var(--muted); margin-top: 1px; }
-
+    .logo-box { width: 155px; max-width: 24vw; flex-shrink: 0; display:flex; align-items:center; }
+    .logo-box img { width:100%; height:auto; max-height:52px; object-fit:contain; }
+    .app-name { font-size: 20px; font-weight: 800; color: #0057B8; letter-spacing: -.3px; }
+    .app-sub { font-size: 12px; font-weight:700; color:var(--muted); margin-top:2px; }
+    .app-devline { font-size:11px; font-style:italic; color:var(--muted); margin-top:3px; line-height:1.4; max-width:450px; }
     .header-right {
       margin-left: auto;
       display: flex; align-items: center; gap: 10px;
@@ -270,12 +264,12 @@
   <!-- ═══ HEADER ═══════════════════════════════════ -->
   <header>
     <div class="logo-box">
-      <img src="norconsult-logo-black.png" alt="Norconsult"
-           onerror="this.style.display='none'; this.parentElement.textContent='N';">
+      <img src="https://trekasb.github.io/BCFManagerNO/assets/norconsult-logo.png" alt="Norconsult">
     </div>
     <div>
-      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.8</span></div>
+      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.9</span></div>
       <div class="app-sub">Norconsult Norge</div>
+      <div class="app-devline">Developed by Norconsult, (AI-assisted development). Kontaktperson: Edin.Dzakmic@norconsult.com.</div>
     </div>
     <div class="header-right">
       <div id="status"><span class="spinner"></span>Kobler til Trimble Connect…</div>
