@@ -274,7 +274,7 @@
            onerror="this.style.display='none'; this.parentElement.textContent='N';">
     </div>
     <div>
-      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.5</span></div>
+      <div class="app-name">ToDoPulse <span style="font-size:10px;color:#64748B;font-weight:500;">v2.6</span></div>
       <div class="app-sub">Norconsult Norge</div>
     </div>
     <div class="header-right">
@@ -575,9 +575,10 @@
       return {start,end};
     }
 
+    function isClosedTodo(t){ return ["CLOSED","DONE","RESOLVED","APPROVED"].includes(getStatus(t).trim().toUpperCase()); }
     function getClosedDate(topic){
       const st=safeStr(topic.topic_status||topic.status);
-      if(!CLOSED_STATUSES.has(st) && !CLOSED_STATUSES.has(st.toLowerCase())) return null;
+      if(!isClosedTodo(topic)) return null;
       return parseDateMaybe(topic.closed_date || topic.closedDate || topic.resolvedAt || topic.resolvedOn || topic.completedAt || topic.completedOn || topic.modified_date);
     }
 
@@ -1191,7 +1192,7 @@
       buildPie("tagDisciplineChart", aggTagCounts(weekToDos));
       renderTagTable(document.getElementById("tagStatusTableWrap"), aggTagStatusMatrix(weekToDos));
 
-      const byStatus=aggByCategory(filteredToDos, t=>getStatus(t).toUpperCase().replace(/[\\s-]+/g,"_"));
+      const byStatus=aggByCategory(filteredToDos, t=>getStatus(t).toUpperCase().replace(/[\s-]+/g,"_"));
       // Alle standardstatuser inkluderes også ved 0 saker.
       const standardStatuses=["NEW","IN_PROGRESS","WAITING","RESOLVED","CLOSED"];
       const allStatuses=[...standardStatuses,...byStatus.keys.filter(k=>!standardStatuses.includes(k))];
@@ -1216,29 +1217,45 @@
 
     function renderVdcDashboard(ToDos){
       const wls=buildWeekLabels(ToDos);
-      if(!wls.length) return;
-
+      if(!wls.length)return;
       const {c,x}=aggCreatedClosed(ToDos,wls);
-      buildBar("createdClosedChart", wls, [
-        mkDataset("Created",c,0), mkDataset("Closed",x,1)
+      const closedTotal=ToDos.filter(isClosedTodo).length;
+      const closedDated=x.reduce((a,b)=>a+b,0);
+      const undatedClosed=Math.max(0,closedTotal-closedDated);
+      const closureUnknown=undatedClosed>0;
+      const weeksForBars=closureUnknown?[...wls,"Ukjent avslutningsuke"]:wls;
+      buildBar("createdClosedChart",weeksForBars,[
+        mkDataset("Created",closureUnknown?[...c,0]:c,0),
+        mkDataset("Closed / Resolved",closureUnknown?[...x,undatedClosed]:x,1)
       ]);
+      const ccHint=document.querySelector("#createdClosedChart")?.closest(".card")?.querySelector(".card-hint");
+      if(ccHint)ccHint.textContent=closureUnknown
+        ? undatedClosed+" avsluttede saker mangler daterbar sluttdato og vises i «Ukjent avslutningsuke»."
+        : "Avslutning telles på sluttdato; siste endringsdato benyttes som estimat hvis sluttdato mangler.";
 
-      buildLine("backlogChart", wls, [
-        mkDataset("Backlog (kumulativ)", aggBacklog(c,x), 0, {tension:.25,pointRadius:2,fill:false})
-      ]);
-
-      buildLine("wipChart", wls, [
-        mkDataset("WIP (åpne ved ukeslutt)", aggWip(ToDos,wls), 2, {tension:.25,pointRadius:2,fill:false})
-      ]);
-
+      // Ikke presenter oppdiktet historisk Backlog / WIP når avslutningsuker mangler.
+      const backlog=closureUnknown?wls.map(()=>null):aggBacklog(c,x);
+      const wip=closureUnknown?wls.map(()=>null):aggWip(ToDos,wls);
+      buildLine("backlogChart",wls,[mkDataset("Backlog (kumulativ)",backlog,0,{tension:.25,pointRadius:2,fill:false})]);
+      buildLine("wipChart",wls,[mkDataset("WIP (åpne ved ukeslutt)",wip,2,{tension:.25,pointRadius:2,fill:false})]);
+      for(const [id,title] of [["backlogChart","Backlog"],["wipChart","WIP"]]){
+        const hint=document.querySelector("#"+id)?.closest(".card")?.querySelector(".card-hint");
+        if(hint)hint.textContent=closureUnknown
+          ? title+": historiske verdier kan ikke beregnes uten avslutningsdato for "+undatedClosed+" sak(er). Nåværende åpne: "+(ToDos.length-closedTotal)+"."
+          : (id==="backlogChart"?"Created − Closed akkumulert":"Åpne saker ved slutten av hver uke");
+      }
       const dd=aggDueDate(ToDos,wls);
       const note=document.getElementById("dueDateNote");
+      const withDue=ToDos.filter(t=>parseDateMaybe(t.due_date||t.dueDate||t.duedate) && isClosedTodo(t));
+      const eligible=withDue.filter(t=>getClosedDate(t)).length;
       if(!dd.found){
         note.textContent="Ingen ToDos med due_date funnet.";
         buildBar("dueDateChart",["–"],[mkDataset("On-time",[0],3),mkDataset("Late",[0],0)],true);
       } else {
-        note.textContent="Lukkede saker: on-time (closed ≤ due_date) vs late (closed > due_date).";
-        buildBar("dueDateChart", wls, [mkDataset("On-time",dd.on,3), mkDataset("Late",dd.late,0)], true);
+        note.textContent=withDue.length>eligible
+          ? "Fristresultat krever sluttdato; "+(withDue.length-eligible)+" avsluttede saker har ukjent avslutningsdato."
+          : "Kun daterbare avsluttede saker med frist; siste endring kan være estimat.";
+        buildBar("dueDateChart",wls,[mkDataset("On-time",dd.on,3),mkDataset("Late",dd.late,0)],true);
       }
     }
 
